@@ -1,5 +1,4 @@
-all:
-	compile
+all: compile
 
 compile:
 	java -jar ../jtb132di.jar -te minijava.jj
