@@ -5,7 +5,19 @@ import java.util.Map;
 import java.util.HashMap;
 
 class symType {
-    String name, type;
+    String identifier, type;
+    int size;
+}
+
+class myHashMap extends HashMap<String, Map<String, symType>> {
+    public Map<String, symType> enterScope(String Scope) throws Exception {
+        if (this.containsKey(Scope)) return this.get(Scope);
+        else {
+            Map<String, symType> innerST = new HashMap<String, symType>();
+            this.put(Scope, innerST);
+            return innerST;
+        }
+    }
 }
 
 class symbolTableVisitor extends GJDepthFirst<String, String> {
