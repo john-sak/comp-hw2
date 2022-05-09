@@ -2,5 +2,5 @@ import syntaxtree.*;
 import visitor.*;
 
 class symbolTableVisitor extends GJDepthFirst<String, String> {
-    //todo
+    public symbolTable<String, String> ST;
 }
