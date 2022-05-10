@@ -5,23 +5,14 @@ import java.util.Map;
 import java.util.HashMap;
 
 class symType {
-    String identifier, type;
-    int size;
-}
-
-class myHashMap extends HashMap<String, Map<String, symType>> {
-    public Map<String, symType> enterScope(String Scope) throws Exception {
-        if (this.containsKey(Scope)) return this.get(Scope);
-        else {
-            Map<String, symType> innerST = new HashMap<String, symType>();
-            this.put(Scope, innerST);
-            return innerST;
-        }
-    }
+    public String type, ret = "", args = "";
+    public int argNum = -1, size = -1;
+    Map<String, symType> inST = null;
+    // Map<String, symType> inST = new HashMap<String, symType>();
 }
 
 class symbolTableVisitor extends GJDepthFirst<String, String> {
-    Map<String, Map<String, symType>> ST = new HashMap<String, Map<String, symType>>();
+    Map<String, Map<String, symType>> globalST = new HashMap<String, Map<String, symType>>();
 
     /**
     * f0 -> "class"
@@ -45,12 +36,24 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
     */
     @Override
     public String visit(MainClass n, String argu) throws Exception {
-        String className = n.f1.accept(this, "GLOBAL");
-        if (this.ST.containsKey(className)) throw new Exception();
+        String className = n.f1.accept(this, "");
+        if (this.globalST.containsKey(className)) throw new Exception();
         else {
-            Map<String, symType> innerST = new HashMap<String, symType>();
-            this.ST.put("GLOAL", innerST);
+            Map<String, symType> localST = new HashMap<String, symType>();
+            this.globalST.put(className, localST);
+            symType symTypeOut = new symType();
+            localST.put("main", symTypeOut);
+            symTypeOut.type = "function";
+            symTypeOut.ret = "void";
+            symTypeOut.argNum = 1;
+            symTypeOut.args = "String[]";
+            symTypeOut.inST = new HashMap<String, symType>();
+            String argName = n.f11.accept(this, "");
+            symType symTypeIn = new symType();
+            symTypeOut.inST.put(argName, symTypeIn);
+            symTypeIn.type = "String[]";
         }
+        n.f14.accept(this, className + "->" + "main");
         return null;
     }
 }
