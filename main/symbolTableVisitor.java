@@ -181,7 +181,7 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
      */
     @Override
     public String visit(FormalParameter n, String argu) throws Exception {
-        return n.f0.accept(this, argu) + " " + n.f1.accept(this, argu);
+        return n.f0.accept(this, null) + " " + n.f1.accept(this, null);
     }
 
     /**
@@ -190,7 +190,17 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
      */
     @Override
     public String visit(FormalParameterTerm n, String argu) throws Exception {
-        return ", " + n.f1.accept(this, argu);
+        return ", " + n.f1.accept(this, null);
+    }
+
+    /**
+     * f0 -> "boolean"
+     * f1 -> "["
+     * f2 -> "]"
+     */
+    @Override
+    public String visit(BooleanArrayType n, String argu) throws Exception {
+        return "boolean[]";
     }
 
     /**
@@ -199,7 +209,7 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
      * f2 -> "]"
      */
     @Override
-    public String visit(ArrayType n, String argu) throws Exception {
+    public String visit(IntegerArrayType n, String argu) throws Exception {
         return "int[]";
     }
 
