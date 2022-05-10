@@ -228,4 +228,12 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
     public String visit(IntegerType n, String argu) throws Exception {
         return "int";
     }
+
+    /**
+     * f0 -> <IDENTIFIER>
+     */
+    @Override
+    public String visit(Identifier n, String argu) throws Exception {
+        return n.f0.toString();
+    }
 }
