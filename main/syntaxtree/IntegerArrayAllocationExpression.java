@@ -6,25 +6,33 @@ package syntaxtree;
 
 /**
  * Grammar production:
- * f0 -> Clause()
- * f1 -> "&&"
- * f2 -> Clause()
+ * f0 -> "new"
+ * f1 -> "int"
+ * f2 -> "["
+ * f3 -> Expression()
+ * f4 -> "]"
  */
-public class AndExpression implements Node {
-   public Clause f0;
+public class IntegerArrayAllocationExpression implements Node {
+   public NodeToken f0;
    public NodeToken f1;
-   public Clause f2;
+   public NodeToken f2;
+   public Expression f3;
+   public NodeToken f4;
 
-   public AndExpression(Clause n0, NodeToken n1, Clause n2) {
+   public IntegerArrayAllocationExpression(NodeToken n0, NodeToken n1, NodeToken n2, Expression n3, NodeToken n4) {
       f0 = n0;
       f1 = n1;
       f2 = n2;
+      f3 = n3;
+      f4 = n4;
    }
 
-   public AndExpression(Clause n0, Clause n1) {
-      f0 = n0;
-      f1 = new NodeToken("&&");
-      f2 = n1;
+   public IntegerArrayAllocationExpression(Expression n0) {
+      f0 = new NodeToken("new");
+      f1 = new NodeToken("int");
+      f2 = new NodeToken("[");
+      f3 = n0;
+      f4 = new NodeToken("]");
    }
 
    public void accept(visitor.Visitor v) throws Exception {

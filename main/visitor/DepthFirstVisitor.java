@@ -226,11 +226,30 @@ public class DepthFirstVisitor implements Visitor {
    }
 
    /**
+    * f0 -> BooleanArrayType()
+    *       | IntegerArrayType()
+    */
+   public void visit(ArrayType n) throws Exception {
+      n.f0.accept(this);
+   }
+
+   /**
+    * f0 -> "boolean"
+    * f1 -> "["
+    * f2 -> "]"
+    */
+   public void visit(BooleanArrayType n) throws Exception {
+      n.f0.accept(this);
+      n.f1.accept(this);
+      n.f2.accept(this);
+   }
+
+   /**
     * f0 -> "int"
     * f1 -> "["
     * f2 -> "]"
     */
-   public void visit(ArrayType n) throws Exception {
+   public void visit(IntegerArrayType n) throws Exception {
       n.f0.accept(this);
       n.f1.accept(this);
       n.f2.accept(this);
@@ -363,16 +382,16 @@ public class DepthFirstVisitor implements Visitor {
     *       | ArrayLookup()
     *       | ArrayLength()
     *       | MessageSend()
-    *       | PrimaryExpression()
+    *       | Clause()
     */
    public void visit(Expression n) throws Exception {
       n.f0.accept(this);
    }
 
    /**
-    * f0 -> PrimaryExpression()
+    * f0 -> Clause()
     * f1 -> "&&"
-    * f2 -> PrimaryExpression()
+    * f2 -> Clause()
     */
    public void visit(AndExpression n) throws Exception {
       n.f0.accept(this);
@@ -491,6 +510,14 @@ public class DepthFirstVisitor implements Visitor {
    }
 
    /**
+    * f0 -> NotExpression()
+    *       | PrimaryExpression()
+    */
+   public void visit(Clause n) throws Exception {
+      n.f0.accept(this);
+   }
+
+   /**
     * f0 -> IntegerLiteral()
     *       | TrueLiteral()
     *       | FalseLiteral()
@@ -498,7 +525,6 @@ public class DepthFirstVisitor implements Visitor {
     *       | ThisExpression()
     *       | ArrayAllocationExpression()
     *       | AllocationExpression()
-    *       | NotExpression()
     *       | BracketExpression()
     */
    public void visit(PrimaryExpression n) throws Exception {
@@ -541,13 +567,36 @@ public class DepthFirstVisitor implements Visitor {
    }
 
    /**
+    * f0 -> BooleanArrayAllocationExpression()
+    *       | IntegerArrayAllocationExpression()
+    */
+   public void visit(ArrayAllocationExpression n) throws Exception {
+      n.f0.accept(this);
+   }
+
+   /**
+    * f0 -> "new"
+    * f1 -> "boolean"
+    * f2 -> "["
+    * f3 -> Expression()
+    * f4 -> "]"
+    */
+   public void visit(BooleanArrayAllocationExpression n) throws Exception {
+      n.f0.accept(this);
+      n.f1.accept(this);
+      n.f2.accept(this);
+      n.f3.accept(this);
+      n.f4.accept(this);
+   }
+
+   /**
     * f0 -> "new"
     * f1 -> "int"
     * f2 -> "["
     * f3 -> Expression()
     * f4 -> "]"
     */
-   public void visit(ArrayAllocationExpression n) throws Exception {
+   public void visit(IntegerArrayAllocationExpression n) throws Exception {
       n.f0.accept(this);
       n.f1.accept(this);
       n.f2.accept(this);
@@ -570,7 +619,7 @@ public class DepthFirstVisitor implements Visitor {
 
    /**
     * f0 -> "!"
-    * f1 -> PrimaryExpression()
+    * f1 -> Clause()
     */
    public void visit(NotExpression n) throws Exception {
       n.f0.accept(this);

@@ -139,11 +139,24 @@ public interface GJNoArguVisitor<R> {
    public R visit(Type n) throws Exception;
 
    /**
+    * f0 -> BooleanArrayType()
+    *       | IntegerArrayType()
+    */
+   public R visit(ArrayType n) throws Exception;
+
+   /**
+    * f0 -> "boolean"
+    * f1 -> "["
+    * f2 -> "]"
+    */
+   public R visit(BooleanArrayType n) throws Exception;
+
+   /**
     * f0 -> "int"
     * f1 -> "["
     * f2 -> "]"
     */
-   public R visit(ArrayType n) throws Exception;
+   public R visit(IntegerArrayType n) throws Exception;
 
    /**
     * f0 -> "boolean"
@@ -229,14 +242,14 @@ public interface GJNoArguVisitor<R> {
     *       | ArrayLookup()
     *       | ArrayLength()
     *       | MessageSend()
-    *       | PrimaryExpression()
+    *       | Clause()
     */
    public R visit(Expression n) throws Exception;
 
    /**
-    * f0 -> PrimaryExpression()
+    * f0 -> Clause()
     * f1 -> "&&"
-    * f2 -> PrimaryExpression()
+    * f2 -> Clause()
     */
    public R visit(AndExpression n) throws Exception;
 
@@ -311,6 +324,12 @@ public interface GJNoArguVisitor<R> {
    public R visit(ExpressionTerm n) throws Exception;
 
    /**
+    * f0 -> NotExpression()
+    *       | PrimaryExpression()
+    */
+   public R visit(Clause n) throws Exception;
+
+   /**
     * f0 -> IntegerLiteral()
     *       | TrueLiteral()
     *       | FalseLiteral()
@@ -318,7 +337,6 @@ public interface GJNoArguVisitor<R> {
     *       | ThisExpression()
     *       | ArrayAllocationExpression()
     *       | AllocationExpression()
-    *       | NotExpression()
     *       | BracketExpression()
     */
    public R visit(PrimaryExpression n) throws Exception;
@@ -349,13 +367,28 @@ public interface GJNoArguVisitor<R> {
    public R visit(ThisExpression n) throws Exception;
 
    /**
+    * f0 -> BooleanArrayAllocationExpression()
+    *       | IntegerArrayAllocationExpression()
+    */
+   public R visit(ArrayAllocationExpression n) throws Exception;
+
+   /**
+    * f0 -> "new"
+    * f1 -> "boolean"
+    * f2 -> "["
+    * f3 -> Expression()
+    * f4 -> "]"
+    */
+   public R visit(BooleanArrayAllocationExpression n) throws Exception;
+
+   /**
     * f0 -> "new"
     * f1 -> "int"
     * f2 -> "["
     * f3 -> Expression()
     * f4 -> "]"
     */
-   public R visit(ArrayAllocationExpression n) throws Exception;
+   public R visit(IntegerArrayAllocationExpression n) throws Exception;
 
    /**
     * f0 -> "new"
@@ -367,7 +400,7 @@ public interface GJNoArguVisitor<R> {
 
    /**
     * f0 -> "!"
-    * f1 -> PrimaryExpression()
+    * f1 -> Clause()
     */
    public R visit(NotExpression n) throws Exception;
 

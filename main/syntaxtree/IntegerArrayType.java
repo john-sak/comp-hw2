@@ -6,21 +6,25 @@ package syntaxtree;
 
 /**
  * Grammar production:
- * f0 -> "!"
- * f1 -> Clause()
+ * f0 -> "int"
+ * f1 -> "["
+ * f2 -> "]"
  */
-public class NotExpression implements Node {
+public class IntegerArrayType implements Node {
    public NodeToken f0;
-   public Clause f1;
+   public NodeToken f1;
+   public NodeToken f2;
 
-   public NotExpression(NodeToken n0, Clause n1) {
+   public IntegerArrayType(NodeToken n0, NodeToken n1, NodeToken n2) {
       f0 = n0;
       f1 = n1;
+      f2 = n2;
    }
 
-   public NotExpression(Clause n0) {
-      f0 = new NodeToken("!");
-      f1 = n0;
+   public IntegerArrayType() {
+      f0 = new NodeToken("int");
+      f1 = new NodeToken("[");
+      f2 = new NodeToken("]");
    }
 
    public void accept(visitor.Visitor v) throws Exception {

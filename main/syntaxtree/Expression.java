@@ -14,7 +14,7 @@ package syntaxtree;
  *       | ArrayLookup()
  *       | ArrayLength()
  *       | MessageSend()
- *       | PrimaryExpression()
+ *       | Clause()
  */
 public class Expression implements Node {
    public NodeChoice f0;

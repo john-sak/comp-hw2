@@ -270,11 +270,32 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
    }
 
    /**
+    * f0 -> BooleanArrayType()
+    *       | IntegerArrayType()
+    */
+   public R visit(ArrayType n, A argu) throws Exception {
+      return n.f0.accept(this, argu);
+   }
+
+   /**
+    * f0 -> "boolean"
+    * f1 -> "["
+    * f2 -> "]"
+    */
+   public R visit(BooleanArrayType n, A argu) throws Exception {
+      R _ret=null;
+      n.f0.accept(this, argu);
+      n.f1.accept(this, argu);
+      n.f2.accept(this, argu);
+      return _ret;
+   }
+
+   /**
     * f0 -> "int"
     * f1 -> "["
     * f2 -> "]"
     */
-   public R visit(ArrayType n, A argu) throws Exception {
+   public R visit(IntegerArrayType n, A argu) throws Exception {
       R _ret=null;
       n.f0.accept(this, argu);
       n.f1.accept(this, argu);
@@ -421,16 +442,16 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     *       | ArrayLookup()
     *       | ArrayLength()
     *       | MessageSend()
-    *       | PrimaryExpression()
+    *       | Clause()
     */
    public R visit(Expression n, A argu) throws Exception {
       return n.f0.accept(this, argu);
    }
 
    /**
-    * f0 -> PrimaryExpression()
+    * f0 -> Clause()
     * f1 -> "&&"
-    * f2 -> PrimaryExpression()
+    * f2 -> Clause()
     */
    public R visit(AndExpression n, A argu) throws Exception {
       R _ret=null;
@@ -569,6 +590,14 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
    }
 
    /**
+    * f0 -> NotExpression()
+    *       | PrimaryExpression()
+    */
+   public R visit(Clause n, A argu) throws Exception {
+      return n.f0.accept(this, argu);
+   }
+
+   /**
     * f0 -> IntegerLiteral()
     *       | TrueLiteral()
     *       | FalseLiteral()
@@ -576,7 +605,6 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     *       | ThisExpression()
     *       | ArrayAllocationExpression()
     *       | AllocationExpression()
-    *       | NotExpression()
     *       | BracketExpression()
     */
    public R visit(PrimaryExpression n, A argu) throws Exception {
@@ -619,13 +647,38 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
    }
 
    /**
+    * f0 -> BooleanArrayAllocationExpression()
+    *       | IntegerArrayAllocationExpression()
+    */
+   public R visit(ArrayAllocationExpression n, A argu) throws Exception {
+      return n.f0.accept(this, argu);
+   }
+
+   /**
+    * f0 -> "new"
+    * f1 -> "boolean"
+    * f2 -> "["
+    * f3 -> Expression()
+    * f4 -> "]"
+    */
+   public R visit(BooleanArrayAllocationExpression n, A argu) throws Exception {
+      R _ret=null;
+      n.f0.accept(this, argu);
+      n.f1.accept(this, argu);
+      n.f2.accept(this, argu);
+      n.f3.accept(this, argu);
+      n.f4.accept(this, argu);
+      return _ret;
+   }
+
+   /**
     * f0 -> "new"
     * f1 -> "int"
     * f2 -> "["
     * f3 -> Expression()
     * f4 -> "]"
     */
-   public R visit(ArrayAllocationExpression n, A argu) throws Exception {
+   public R visit(IntegerArrayAllocationExpression n, A argu) throws Exception {
       R _ret=null;
       n.f0.accept(this, argu);
       n.f1.accept(this, argu);
@@ -652,7 +705,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
 
    /**
     * f0 -> "!"
-    * f1 -> PrimaryExpression()
+    * f1 -> Clause()
     */
    public R visit(NotExpression n, A argu) throws Exception {
       R _ret=null;

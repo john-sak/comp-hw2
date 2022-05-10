@@ -6,25 +6,14 @@ package syntaxtree;
 
 /**
  * Grammar production:
- * f0 -> "int"
- * f1 -> "["
- * f2 -> "]"
+ * f0 -> BooleanArrayType()
+ *       | IntegerArrayType()
  */
 public class ArrayType implements Node {
-   public NodeToken f0;
-   public NodeToken f1;
-   public NodeToken f2;
+   public NodeChoice f0;
 
-   public ArrayType(NodeToken n0, NodeToken n1, NodeToken n2) {
+   public ArrayType(NodeChoice n0) {
       f0 = n0;
-      f1 = n1;
-      f2 = n2;
-   }
-
-   public ArrayType() {
-      f0 = new NodeToken("int");
-      f1 = new NodeToken("[");
-      f2 = new NodeToken("]");
    }
 
    public void accept(visitor.Visitor v) throws Exception {

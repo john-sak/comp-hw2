@@ -102,6 +102,7 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
     * f1 -> Identifier()
     * f2 -> ";"
     */
+    @Override
     public String visit(VarDeclaration n, String argu) throws Exception {
         String[] scopes = argu.split("->");
         Map<String, symType> localST = this.globalST.get(scopes[0]);
@@ -112,11 +113,9 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
         }
         String type = n.f0.accept(this, null), id = n.f1.accept(this, null);
         if (localST.containsKey(id)) throw new Exception();
-        else {
-            symType symTypeIn = new symType();
-            localST.put(id, symTypeIn);
-            symTypeIn.type = type;
-        }
+        symType symTypeIn = new symType();
+        localST.put(id, symTypeIn);
+        symTypeIn.type = type;
         return null;
     }
 
@@ -137,12 +136,86 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
      */
     @Override
     public String visit(MethodDeclaration n, String argu) throws Exception {
-        String argumentList = n.f4.present() ? n.f4.accept(this, null) : "";
-
-        String myType = n.f1.accept(this, null);
-        String myName = n.f2.accept(this, null);
-
-        System.out.println(myType + " " + myName + " -- " + argumentList);
+        if (argu.contains("->")) throw new Exception();
+        String type = n.f1.accept(this, null), id = n.f2.accept(this, null), argList = (n.f4.present() ? n.f4.accept(this, null) : null);
+        if (!this.globalST.containsKey(argu)) throw new Exception();
+        if (this.globalST.get(argu).containsKey(id)) throw new Exception();
+        symType symTypeIn = new symType();
+        this.globalST.get(argu).put(id, symTypeIn);
+        symTypeIn.type = "function";
+        symTypeIn.ret = type;
+        symTypeIn.inST = new HashMap<String, symType>();
+        if (!argList.equals("")) {
+            String[] args = argList.split(", ");
+            symTypeIn.argNum = args.length;
+            symTypeIn.args = "";
+            for (String arg : args) {
+                String[] parts = arg.split(" ");
+                symTypeIn.args += parts[0] + ", ";
+                if (symTypeIn.inST.containsKey(parts[1])) throw new Exception();
+                symType symType2 = new symType();
+                symTypeIn.inST.put(parts[1], symType2);
+                symType2.type = parts[0];
+            }
+            symTypeIn.args = symTypeIn.args.substring(0, symTypeIn.args.length() - 2);
+        } else {
+            symTypeIn.args = "";
+            symTypeIn.argNum = 0;
+        }
+        n.f7.accept(this, argu + "->" + id);
         return null;
+    }
+
+    /**
+    * f0 -> FormalParameter()
+    * f1 -> FormalParameterTail()
+    */
+    @Override
+    public String visit(FormalParameterList n, String argu) throws Exception {
+        return n.f0.accept(this, null) + n.f1.accept(this, null);
+    }
+
+    /**
+     * f0 -> Type()
+     * f1 -> Identifier()
+     */
+    @Override
+    public String visit(FormalParameter n, String argu) throws Exception {
+        return n.f0.accept(this, argu) + " " + n.f1.accept(this, argu);
+    }
+
+    /**
+     * f0 -> ","
+     * f1 -> FormalParameter()
+     */
+    @Override
+    public String visit(FormalParameterTerm n, String argu) throws Exception {
+        return ", " + n.f1.accept(this, argu);
+    }
+
+    /**
+     * f0 -> "int"
+     * f1 -> "["
+     * f2 -> "]"
+     */
+    @Override
+    public String visit(ArrayType n, String argu) throws Exception {
+        return "int[]";
+    }
+
+    /**
+     * f0 -> "boolean"
+     */
+    @Override
+    public String visit(BooleanType n, String argu) throws Exception {
+        return "boolean";
+    }
+
+    /**
+     * f0 -> "int"
+     */
+    @Override
+    public String visit(IntegerType n, String argu) throws Exception {
+        return "int";
     }
 }
