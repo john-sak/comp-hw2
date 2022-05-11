@@ -4,6 +4,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import java.util.Map;
+
 public class Main {
     public static void main(String[] args) throws Exception {
         if(args.length < 1){
@@ -23,8 +25,11 @@ public class Main {
 
                 System.err.println("Program in inputFile \"" + args[i] + "\" parsed successfully.");
 
-                MyVisitor eval = new MyVisitor();
+                // MyVisitor eval = new MyVisitor();
+                symbolTableVisitor eval = new symbolTableVisitor();
                 root.accept(eval, null);
+                Map<String, Map<String, symInfo>> symbolTable = eval.globalST;
+                System.out.println(symbolTable);
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage() + " inputFile \"" + args[i] + "\"");

@@ -92,8 +92,8 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
         this.globalST.put(className, localST);
         // localST.putAll(this.globalST.get(classExtends));
         // for (Map.Entry<String, symInfo> entry : localST.entrySet()) entry.getValue().extended = true;
-        n.f3.accept(this, className);
-        n.f4.accept(this, className);
+        n.f5.accept(this, className);
+        n.f6.accept(this, className);
         return null;
     }
 
@@ -137,7 +137,7 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
     @Override
     public String visit(MethodDeclaration n, String argu) throws Exception {
         if (argu.contains("->")) throw new Exception();
-        String type = n.f1.accept(this, null), id = n.f2.accept(this, null), argList = (n.f4.present() ? n.f4.accept(this, null) : null);
+        String type = n.f1.accept(this, null), id = n.f2.accept(this, null), argList = (n.f4.present() ? n.f4.accept(this, null) : "");
         if (!this.globalST.containsKey(argu)) throw new Exception();
         if (this.globalST.get(argu).containsKey(id)) throw new Exception();
         symInfo info = new symInfo();
