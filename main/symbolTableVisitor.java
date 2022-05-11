@@ -4,54 +4,54 @@ import visitor.*;
 import java.util.Map;
 import java.util.HashMap;
 
-class symType {
+class symInfo {
     public String type, ret = null, args = null;
-    public int argNum = -1, size = -1;
-    public boolean extended = false;
-    public Map<String, symType> inST = null;
+    public int argNum = 0, size = 0;
+    // public boolean extended = false;
+    public Map<String, symInfo> localST = null;
 }
 
 class symbolTableVisitor extends GJDepthFirst<String, String> {
-    Map<String, Map<String, symType>> globalST = new HashMap<String, Map<String, symType>>();
+    Map<String, Map<String, symInfo>> globalST = new HashMap<String, Map<String, symInfo>>();
 
     /**
-    * f0 -> "class"
-    * f1 -> Identifier()
-    * f2 -> "{"
-    * f3 -> "public"
-    * f4 -> "static"
-    * f5 -> "void"
-    * f6 -> "main"
-    * f7 -> "("
-    * f8 -> "String"
-    * f9 -> "["
-    * f10 -> "]"
-    * f11 -> Identifier()
-    * f12 -> ")"
-    * f13 -> "{"
-    * f14 -> ( VarDeclaration() )*
-    * f15 -> ( Statement() )*
-    * f16 -> "}"
-    * f17 -> "}"
-    */
+     * f0 -> "class"
+     * f1 -> Identifier()
+     * f2 -> "{"
+     * f3 -> "public"
+     * f4 -> "static"
+     * f5 -> "void"
+     * f6 -> "main"
+     * f7 -> "("
+     * f8 -> "String"
+     * f9 -> "["
+     * f10 -> "]"
+     * f11 -> Identifier()
+     * f12 -> ")"
+     * f13 -> "{"
+     * f14 -> ( VarDeclaration() )*
+     * f15 -> ( Statement() )*
+     * f16 -> "}"
+     * f17 -> "}"
+     */
     @Override
     public String visit(MainClass n, String argu) throws Exception {
         String className = n.f1.accept(this, null);
         if (this.globalST.containsKey(className)) throw new Exception();
-        Map<String, symType> localST = new HashMap<String, symType>();
+        Map<String, symInfo> localST = new HashMap<String, symInfo>();
         this.globalST.put(className, localST);
-        symType symTypeOut = new symType();
-        localST.put("main", symTypeOut);
-        symTypeOut.type = "function";
-        symTypeOut.ret = "void";
-        symTypeOut.argNum = 1;
-        symTypeOut.args = "String[]";
-        symTypeOut.inST = new HashMap<String, symType>();
+        symInfo infoOut = new symInfo();
+        localST.put("main", infoOut);
+        infoOut.type = "function";
+        infoOut.ret = "void";
+        infoOut.argNum = 1;
+        infoOut.args = "String[]";
+        infoOut.localST = new HashMap<String, symInfo>();
         String argName = n.f11.accept(this, null);
-        symType symTypeIn = new symType();
-        symTypeOut.inST.put(argName, symTypeIn);
-        symTypeIn.type = "String[]";
-        n.f14.accept(this, className + "->" + "main");
+        symInfo infoIn = new symInfo();
+        infoOut.localST.put(argName, infoIn);
+        infoIn.type = "String[]";
+        n.f14.accept(this, className + "->main");
         return null;
     }
 
@@ -67,7 +67,7 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
     public String visit(ClassDeclaration n, String argu) throws Exception {
         String className = n.f1.accept(this, null);
         if (this.globalST.containsKey(className)) throw new Exception();
-        Map<String, symType> localST = new HashMap<String, symType>();
+        Map<String, symInfo> localST = new HashMap<String, symInfo>();
         this.globalST.put(className, localST);
         n.f3.accept(this, className);
         n.f4.accept(this, className);
@@ -88,34 +88,34 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
     public String visit(ClassExtendsDeclaration n, String argu) throws Exception {
         String className = n.f1.accept(this, null); // classExtends = n.f3.accept(this, null);
         if (this.globalST.containsKey(className)) throw new Exception();
-        Map<String, symType> localST = new HashMap<String, symType>();
+        Map<String, symInfo> localST = new HashMap<String, symInfo>();
         this.globalST.put(className, localST);
         // localST.putAll(this.globalST.get(classExtends));
-        // for (Map.Entry<String, symType> entry : localST.entrySet()) entry.getValue().extended = true;
+        // for (Map.Entry<String, symInfo> entry : localST.entrySet()) entry.getValue().extended = true;
         n.f3.accept(this, className);
         n.f4.accept(this, className);
         return null;
     }
 
     /**
-    * f0 -> Type()
-    * f1 -> Identifier()
-    * f2 -> ";"
-    */
+     * f0 -> Type()
+     * f1 -> Identifier()
+     * f2 -> ";"
+     */
     @Override
     public String visit(VarDeclaration n, String argu) throws Exception {
         String[] scopes = argu.split("->");
-        Map<String, symType> localST = this.globalST.get(scopes[0]);
+        Map<String, symInfo> localST = this.globalST.get(scopes[0]);
         if (argu.contains("->")) {
-            symType symTypeIn = localST.get(scopes[1]);
-            if (symTypeIn.type.equals("function")) localST = symTypeIn.inST;
-            else throw new Exception();
+            symInfo info = localST.get(scopes[1]);
+            if (!info.type.equals("function")) throw new Exception();
+            localST = info.localST;
         }
         String type = n.f0.accept(this, null), id = n.f1.accept(this, null);
         if (localST.containsKey(id)) throw new Exception();
-        symType symTypeIn = new symType();
-        localST.put(id, symTypeIn);
-        symTypeIn.type = type;
+        symInfo info = new symInfo();
+        localST.put(id, info);
+        info.type = type;
         return null;
     }
 
@@ -140,27 +140,27 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
         String type = n.f1.accept(this, null), id = n.f2.accept(this, null), argList = (n.f4.present() ? n.f4.accept(this, null) : null);
         if (!this.globalST.containsKey(argu)) throw new Exception();
         if (this.globalST.get(argu).containsKey(id)) throw new Exception();
-        symType symTypeIn = new symType();
-        this.globalST.get(argu).put(id, symTypeIn);
-        symTypeIn.type = "function";
-        symTypeIn.ret = type;
-        symTypeIn.inST = new HashMap<String, symType>();
+        symInfo info = new symInfo();
+        this.globalST.get(argu).put(id, info);
+        info.type = "function";
+        info.ret = type;
+        info.localST = new HashMap<String, symInfo>();
         if (!argList.equals("")) {
             String[] args = argList.split(", ");
-            symTypeIn.argNum = args.length;
-            symTypeIn.args = "";
+            info.argNum = args.length;
+            info.args = "";
             for (String arg : args) {
                 String[] parts = arg.split(" ");
-                symTypeIn.args += parts[0] + ", ";
-                if (symTypeIn.inST.containsKey(parts[1])) throw new Exception();
-                symType symType2 = new symType();
-                symTypeIn.inST.put(parts[1], symType2);
-                symType2.type = parts[0];
+                info.args += parts[0] + ", ";
+                if (info.localST.containsKey(parts[1])) throw new Exception();
+                symInfo infoIn = new symInfo();
+                info.localST.put(parts[1], infoIn);
+                infoIn.type = parts[0];
             }
-            symTypeIn.args = symTypeIn.args.substring(0, symTypeIn.args.length() - 2);
+            info.args = info.args.substring(0, info.args.length() - 2);
         } else {
-            symTypeIn.args = "";
-            symTypeIn.argNum = 0;
+            info.args = "";
+            info.argNum = 0;
         }
         n.f7.accept(this, argu + "->" + id);
         return null;
