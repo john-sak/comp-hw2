@@ -16,28 +16,28 @@ public class Main {
         FileInputStream fis = null;
         for (int i = 0; i < args.length; i++) {
             try{
-                fis = new FileInputStream(args[0]);
+                fis = new FileInputStream(args[i]);
                 MiniJavaParser parser = new MiniJavaParser(fis);
 
                 Goal root = parser.Goal();
 
-                System.err.println("Program in inputFile" + (i + 1) + " parsed successfully.");
+                System.err.println("Program in inputFile \"" + args[i] + "\" parsed successfully.");
 
                 MyVisitor eval = new MyVisitor();
                 root.accept(eval, null);
             }
             catch(ParseException ex){
-                System.out.println(ex.getMessage() + " <inputFile" + (i + 1) + ">");
+                System.out.println(ex.getMessage() + " inputFile \"" + args[i] + "\"");
             }
             catch(FileNotFoundException ex){
-                System.err.println(ex.getMessage());
+                System.err.println(ex.getMessage() + " inputFile \"" + args[i] + "\"");
             }
             finally{
                 try{
                     if(fis != null) fis.close();
                 }
                 catch(IOException ex){
-                    System.err.println(ex.getMessage());
+                    System.err.println(ex.getMessage() + " inputFile \"" + args[i] + "\"");
                 }
             }
         }
