@@ -22,12 +22,12 @@ public class Main {
                 symbolTableVisitor STVisitor = new symbolTableVisitor();
                 root.accept(STVisitor, null);
                 System.out.println("Program in inputFile \"" + args[i] + "\" idk.");
-                TCArgs argu = new TCArgs();
-                argu.globalST = STVisitor.globalST;
-                typeCheckVisitor TCVisitor = new typeCheckVisitor();
-                root.accept(TCVisitor, argu);
-                System.out.println("Program in inputFile \"" + args[i] + "\" idk.");
-                System.out.println("todo print rest");
+                // TCArgs argu = new TCArgs();
+                // argu.globalST = STVisitor.globalST;
+                // typeCheckVisitor TCVisitor = new typeCheckVisitor();
+                // root.accept(TCVisitor, argu);
+                // System.out.println("Program in inputFile \"" + args[i] + "\" idk.");
+                // System.out.println("todo print rest");
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage() + " inputFile \"" + args[i] + "\"");
