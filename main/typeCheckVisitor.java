@@ -2,7 +2,6 @@ import syntaxtree.*;
 import visitor.*;
 
 import java.util.Map;
-import java.util.HashMap;
 
 class TCArgs {
     public String scope = "";
@@ -145,21 +144,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(AssignmentStatement n, TCArgs argu) throws Exception {
-        if (!argu.scope.contains("->")) throw new Exception();
-        String[] scopes = argu.scope.split("->");
-        if (scopes.length != 2) throw new Exception();
-        classInfo classI;
-        if ((classI = argu.globalST.get(scopes[0])) == null) throw new Exception();
-        methodInfo methodI;
-        if ((methodI = classI.methods.get(scopes[1])) == null) throw new Exception();
-        String name = n.f0.accept(this, null);
-        fieldInfo fieldI;
-        if ((fieldI = methodI.localVars.get(name)) != null);
-        else {
-            for (Map<String, fieldInfo> scope : classI.fields) if ((fieldI = scope.get(name)) != null) break;
-            if (fieldI == null) throw new Exception();
-        }
-        if (fieldI.type.compareTo(n.f2.accept(this, argu)) != 0) throw new Exception();
+        if (n.f0.accept(this, argu).compareTo(n.f2.accept(this, argu)) != 0) throw new Exception();
         return null;
     }
     
@@ -175,21 +160,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     @Override
     public String visit(ArrayAssignmentStatement n, TCArgs argu) throws Exception {
         if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
-        if (!argu.scope.contains("->")) throw new Exception();
-        String[] scopes = argu.scope.split("->");
-        if (scopes.length != 2) throw new Exception();
-        classInfo classI;
-        if ((classI = argu.globalST.get(scopes[0])) == null) throw new Exception();
-        methodInfo methodI;
-        if ((methodI = classI.methods.get(scopes[1])) == null) throw new Exception();
-        String name = n.f0.accept(this, null);
-        fieldInfo fieldI;
-        if ((fieldI = methodI.localVars.get(name)) != null);
-        else {
-            for (Map<String, fieldInfo> scope : classI.fields) if ((fieldI = scope.get(name)) != null) break;
-            if (fieldI == null) throw new Exception();
-        }
-        if (fieldI.type.compareTo(n.f5.accept(this, argu)) != 0) throw new Exception();
+        if (n.f0.accept(this, argu).compareTo(n.f5.accept(this, argu)) != 0) throw new Exception();
         return null;
     }
     
@@ -235,10 +206,115 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     }
 
     /**
+     * f0 -> Clause()
+     * f1 -> "&&"
+     * f2 -> Clause()
+     */
+    public String visit(AndExpression n, TCArgs argu) throws Exception {
+        if (n.f0.accept(this, argu).compareTo("boolean") != 0) throw new Exception();
+        if (n.f2.accept(this, argu).compareTo("boolean") != 0) throw new Exception();
+        return "boolean";
+    }
+    
+    /**
+     * f0 -> PrimaryExpression()
+     * f1 -> "<"
+     * f2 -> PrimaryExpression()
+     */
+    public String visit(CompareExpression n, TCArgs argu) throws Exception {
+        if (n.f0.accept(this, argu).compareTo("int") != 0) throw new Exception();
+        if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
+        return "boolean";
+    }
+
+    /**
+     * f0 -> PrimaryExpression()
+     * f1 -> "+"
+     * f2 -> PrimaryExpression()
+     */
+    public String visit(PlusExpression n, TCArgs argu) throws Exception {
+        if (n.f0.accept(this, argu).compareTo("int") != 0) throw new Exception();
+        if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
+        return "int";
+    }
+    
+    /**
+     * f0 -> PrimaryExpression()
+     * f1 -> "-"
+     * f2 -> PrimaryExpression()
+     */
+    public String visit(MinusExpression n, TCArgs argu) throws Exception {
+        if (n.f0.accept(this, argu).compareTo("int") != 0) throw new Exception();
+        if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
+        return "int";
+    }
+    
+    /**
+     * f0 -> PrimaryExpression()
+     * f1 -> "*"
+     * f2 -> PrimaryExpression()
+     */
+    public String visit(TimesExpression n, TCArgs argu) throws Exception {
+        if (n.f0.accept(this, argu).compareTo("int") != 0) throw new Exception();
+        if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
+        return "int";
+    }
+
+    /**
+     * f0 -> PrimaryExpression()
+     * f1 -> "["
+     * f2 -> PrimaryExpression()
+     * f3 -> "]"
+     */
+    public String visit(ArrayLookup n, TCArgs argu) throws Exception {
+        String type = n.f0.accept(this, argu);
+        if (type.compareTo("int[]") != 0 && type.compareTo("boolean[]") != 0) throw new Exception();
+        if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
+        return null;
+    }
+    
+    /**
+     * f0 -> PrimaryExpression()
+     * f1 -> "."
+     * f2 -> "length"
+     */
+    public String visit(ArrayLength n, TCArgs argu) throws Exception {
+        String type = n.f0.accept(this, argu);
+        if (type.compareTo("int[]") != 0 && type.compareTo("boolean[]") != 0) throw new Exception();
+        return null;
+    }
+
+    /**
+     * f0 -> PrimaryExpression()
+     * f1 -> "."
+     * f2 -> Identifier()
+     * f3 -> "("
+     * f4 -> ( ExpressionList() )?
+     * f5 -> ")"
+     */
+    public String visit(MessageSend n, TCArgs argu) throws Exception {
+        return null;
+    }
+
+    /**
      * f0 -> <IDENTIFIER>
      */
     @Override
     public String visit(Identifier n, TCArgs argu) throws Exception {
-        return n.f0.toString();
+        if (!argu.scope.contains("->")) throw new Exception();
+        String[] scopes = argu.scope.split("->");
+        if (scopes.length != 2) throw new Exception();
+        String name = n.f0.toString();
+        classInfo classI;
+        if ((classI = argu.globalST.get(scopes[0])) == null) throw new Exception();
+        methodInfo methodI;
+        if ((methodI = classI.methods.get(scopes[1])) == null) throw new Exception();
+        fieldInfo fieldI;
+        if ((fieldI = methodI.localVars.get(name)) != null);
+        else {
+            for (Map<String, fieldInfo> scope : classI.fields) if ((fieldI = scope.get(name)) != null) break;
+            if (fieldI == null) throw new Exception();
+        }
+        return fieldI.type;
     }
 }
