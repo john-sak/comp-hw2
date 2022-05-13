@@ -1,11 +1,10 @@
 import syntaxtree.*;
 import visitor.*;
 
-import java.io.EOFException;
 import java.util.Map;
 
 class TCArgs {
-    public String scope = "";
+    public String scope = null;
     Map<String, classInfo> globalST = null;
 }
 
@@ -96,20 +95,10 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f1 -> Identifier()
      * f2 -> ";"
      */
+    @Override
     public String visit(VarDeclaration n, TCArgs argu) throws Exception {
         String type = n.f0.accept(this, null);
         if (!isValidType(type, argu)) throw new Exception();
-        // if (type.compareTo("boolean[]") !=0 && type.compareTo("int[]") !=0 && type.compareTo("boolean") != 0 && type.compareTo("int") != 0 && !argu.globalST.containsKey(type)) throw new Exception();
-        // String[] scopes = argu.scope.split("->");
-        // classInfo classI;
-        // if ((classI = argu.globalST.get(scopes[0])) == null) throw new Exception();
-        // if (argu.scope.contains("->")) {
-        //     methodInfo methodI;
-        //     if ((methodI = classI.methods.get(0).get(scopes[1])) == null) throw new Exception();
-        //     if (methodI.localVars.put(n.f1.accept(this, null), new fieldInfo(n.f0.accept(this, null))) != null) throw new Exception();
-        // } else {
-        //     if (!argu.globalST.containsKey(n.f0.accept(this, null))) throw new Exception();
-        // }
         return null;
     }
     
@@ -136,7 +125,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
         n.f7.accept(this, argu);
         n.f8.accept(this, argu);
         String type = n.f1.accept(this, null);
-        if (!isValidType(type, argu) || !isAcceptable(type, resolveIdentifier(n.f10.accept(this, null), argu), argu)) throw new Exception();
+        if (!isValidType(type, argu) || !isAcceptable(type, n.f10.accept(this, null), argu)) throw new Exception();
         argu = oldArgu;
         return null;
     }
@@ -147,9 +136,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(FormalParameter n, TCArgs argu) throws Exception {
-        // String type = n.f0.accept(this, argu);
         if (!isValidType(n.f0.accept(this, null), argu)) throw new Exception();
-        // if (type.compareTo("boolean[]") !=0 && type.compareTo("int[]") !=0 && type.compareTo("boolean") != 0 && type.compareTo("int") != 0 && !argu.globalST.containsKey(type)) throw new Exception();
         return null;
     }
     
@@ -198,7 +185,6 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     @Override
     public String visit(AssignmentStatement n, TCArgs argu) throws Exception {
         if (!isAcceptable(resolveIdentifier(n.f0.accept(this, null), argu), n.f2.accept(this, argu), argu)) throw new Exception();
-        // if (n.f0.accept(this, argu).compareTo(n.f2.accept(this, argu)) != 0) throw new Exception();
         return null;
     }
     
@@ -213,13 +199,11 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(ArrayAssignmentStatement n, TCArgs argu) throws Exception {
-        String name = n.f0.accept(this, null);
-        if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
-        String type = resolveIdentifier(name, argu);
+        String type = resolveIdentifier(n.f0.accept(this, null), argu);
         if (!isAcceptable("boolean[]|int[]", type, argu)) throw new Exception();
+        if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
+        type = type.substring(0, type.length() - 2);
         if (!isAcceptable(type, n.f5.accept(this, argu), argu)) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
-        // if (n.f0.accept(this, argu).compareTo(n.f5.accept(this, argu)) != 0) throw new Exception();
         return null;
     }
     
@@ -232,9 +216,9 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f5 -> "else"
      * f6 -> Statement()
      */
+    @Override
     public String visit(IfStatement n, TCArgs argu) throws Exception {
         if (!isAcceptable("boolean", n.f2.accept(this, argu), argu)) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("boolean") != 0) throw new Exception();
         n.f4.accept(this, argu);
         n.f6.accept(this, argu);
         return null;
@@ -247,9 +231,9 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f3 -> ")"
      * f4 -> Statement()
      */
+    @Override
     public String visit(WhileStatement n, TCArgs argu) throws Exception {
         if (!isAcceptable("boolean", n.f2.accept(this, argu), argu)) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("boolean") != 0) throw new Exception();
         n.f4.accept(this, argu);
         return null;
     }
@@ -261,9 +245,9 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f3 -> ")"
      * f4 -> ";"
      */
+    @Override
     public String visit(PrintStatement n, TCArgs argu) throws Exception {
         if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
         return null;
     }
     
@@ -272,11 +256,10 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f1 -> "&&"
      * f2 -> Clause()
      */
+    @Override
     public String visit(AndExpression n, TCArgs argu) throws Exception {
         if (!isAcceptable("boolean", n.f0.accept(this, argu), argu)) throw new Exception();
         if (!isAcceptable("boolean", n.f2.accept(this, argu), argu)) throw new Exception();
-        // if (n.f0.accept(this, argu).compareTo("boolean") != 0) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("boolean") != 0) throw new Exception();
         return "boolean";
     }
     
@@ -285,11 +268,10 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f1 -> "<"
      * f2 -> PrimaryExpression()
      */
+    @Override
     public String visit(CompareExpression n, TCArgs argu) throws Exception {
         if (!isAcceptable("int", n.f0.accept(this, argu), argu)) throw new Exception();
         if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
-        // if (n.f0.accept(this, argu).compareTo("int") != 0) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
         return "boolean";
     }
 
@@ -298,11 +280,10 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f1 -> "+"
      * f2 -> PrimaryExpression()
      */
+    @Override
     public String visit(PlusExpression n, TCArgs argu) throws Exception {
         if (!isAcceptable("int", n.f0.accept(this, argu), argu)) throw new Exception();
         if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
-        // if (n.f0.accept(this, argu).compareTo("int") != 0) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
         return "int";
     }
     
@@ -311,11 +292,10 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f1 -> "-"
      * f2 -> PrimaryExpression()
      */
+    @Override
     public String visit(MinusExpression n, TCArgs argu) throws Exception {
         if (!isAcceptable("int", n.f0.accept(this, argu), argu)) throw new Exception();
         if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
-        // if (n.f0.accept(this, argu).compareTo("int") != 0) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
         return "int";
     }
     
@@ -324,11 +304,10 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f1 -> "*"
      * f2 -> PrimaryExpression()
      */
+    @Override
     public String visit(TimesExpression n, TCArgs argu) throws Exception {
         if (!isAcceptable("int", n.f0.accept(this, argu), argu)) throw new Exception();
         if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
-        // if (n.f0.accept(this, argu).compareTo("int") != 0) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
         return "int";
     }
 
@@ -338,15 +317,12 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f2 -> PrimaryExpression()
      * f3 -> "]"
      */
+    @Override
     public String visit(ArrayLookup n, TCArgs argu) throws Exception {
-        // String type = resolveIdentifier(n.f0.accept(this, argu), argu);
         String type = n.f0.accept(this, argu);
         if (!isAcceptable("boolean[]|int[]", type, argu)) throw new Exception();
         if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
-        // String type = n.f0.accept(this, argu);
-        // if (type.compareTo("int[]") != 0 && type.compareTo("boolean[]") != 0) throw new Exception();
-        // if (n.f2.accept(this, argu).compareTo("int") != 0) throw new Exception();
-        return type;
+        return type.substring(0, type.length() - 2);
     }
     
     /**
@@ -354,11 +330,9 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f1 -> "."
      * f2 -> "length"
      */
+    @Override
     public String visit(ArrayLength n, TCArgs argu) throws Exception {
         if (!isAcceptable("boolean[]|int[]", n.f0.accept(this, argu), argu)) throw new Exception();
-        // if (!isAcceptable("boolean[]|int[]", resolveIdentifier(n.f0.accept(this, null), argu), argu)) throw new Exception();
-        // String type = n.f0.accept(this, argu);
-        // if (type.compareTo("int[]") != 0 && type.compareTo("boolean[]") != 0) throw new Exception();
         return "int";
     }
 
@@ -370,6 +344,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f4 -> ( ExpressionList() )?
      * f5 -> ")"
      */
+    @Override
     public String visit(MessageSend n, TCArgs argu) throws Exception {
         String expr = n.f0.accept(this, argu), scope;
         if (expr.compareTo("this") != 0) {
@@ -395,6 +370,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f0 -> Expression()
      * f1 -> ExpressionTail()
      */
+    @Override
     public String visit(ExpressionList n, TCArgs argu) throws Exception {
         return n.f0.accept(this, argu) + n.f1.accept(this, argu);
     }
@@ -403,6 +379,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f0 -> ","
      * f1 -> Expression()
      */
+    @Override
     public String visit(ExpressionTerm n, TCArgs argu) throws Exception {
         return ", " + n.f1.accept(this, argu);
     }
@@ -417,6 +394,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      *       | AllocationExpression()
      *       | BracketExpression()
      */
+    @Override
     public String visit(PrimaryExpression n, TCArgs argu) throws Exception {
         String type = n.f0.accept(this, argu);
         if (!isValidType(type, argu)) type = resolveIdentifier(type, argu);
@@ -426,6 +404,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     /**
      * f0 -> <INTEGER_LITERAL>
      */
+    @Override
     public String visit(IntegerLiteral n, TCArgs argu) throws Exception {
         return "int";
     }
@@ -433,6 +412,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     /**
      * f0 -> "true"
      */
+    @Override
     public String visit(TrueLiteral n, TCArgs argu) throws Exception {
         return "boolean";
     }
@@ -440,6 +420,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     /**
      * f0 -> "false"
      */
+    @Override
     public String visit(FalseLiteral n, TCArgs argu) throws Exception {
         return "boolean";
     }
@@ -455,6 +436,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     /**
      * f0 -> "this"
      */
+    @Override
     public String visit(ThisExpression n, TCArgs argu) throws Exception {
         return "this";
     }
@@ -466,6 +448,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f3 -> Expression()
      * f4 -> "]"
      */
+    @Override
     public String visit(BooleanArrayAllocationExpression n, TCArgs argu) throws Exception {
         if (!isAcceptable("int", n.f3.accept(this, argu), argu)) throw new Exception();
         return "boolean[]";
@@ -478,6 +461,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f3 -> Expression()
      * f4 -> "]"
      */
+    @Override
     public String visit(IntegerArrayAllocationExpression n, TCArgs argu) throws Exception {
         if (!isAcceptable("int", n.f3.accept(this, argu), argu)) throw new Exception();
         return "int[]";
@@ -489,6 +473,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f2 -> "("
      * f3 -> ")"
      */
+    @Override
     public String visit(AllocationExpression n, TCArgs argu) throws Exception {
         String type = resolveIdentifier(n.f1.accept(this, null), argu);
         return type;
@@ -498,6 +483,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      * f0 -> "!"
      * f1 -> Clause()
      */
+    @Override
     public String visit(NotExpression n, TCArgs argu) throws Exception {
         if (!isAcceptable("boolean", n.f1.accept(this, argu), argu)) throw new Exception();
         return "boolean";
