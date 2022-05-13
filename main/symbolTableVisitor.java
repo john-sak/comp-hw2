@@ -9,10 +9,11 @@ import java.util.HashMap;
 
 class classInfo {
     public List<Map<String, fieldInfo>> fields = new ArrayList<Map<String, fieldInfo>>();
-    public Map<String, methodInfo> methods = new HashMap<String, methodInfo>();
+    public List<Map<String, methodInfo>> methods = new ArrayList<Map<String, methodInfo>>();
 
     classInfo() {
         this.fields.add(new HashMap<String, fieldInfo>());
+        this.methods.add(new HashMap<String, methodInfo>());
     }
 }
 
@@ -57,12 +58,12 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
     public String visit(MainClass n, String argu) throws Exception {
         String className = n.f1.accept(this, null);
         if (this.globalST.put(className, new classInfo()) != null) throw new Exception();
-        if (this.globalST.get(className).methods.put("main", new methodInfo()) != null) throw new Exception();
-        methodInfo methodI = this.globalST.get(className).methods.get("main");
+        if (this.globalST.get(className).methods.get(0).put("main", new methodInfo()) != null) throw new Exception();
+        methodInfo methodI = this.globalST.get(className).methods.get(0).get("main");
         methodI.returnValue = "void";
         methodI.argNum = 1;
         methodI.argTypes = "String[]";
-        methodI.localVars.put(n.f1.accept(this, null), new fieldInfo("String[]"));
+        methodI.localVars.put(n.f11.accept(this, null), new fieldInfo("String[]"));
         n.f14.accept(this, className + "->main");
         return null;
     }
@@ -101,7 +102,20 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
         if (this.globalST.put(className, new classInfo()) != null) throw new Exception();
         n.f5.accept(this, className);
         n.f6.accept(this, className);
-        this.globalST.get(className).fields.addAll(this.globalST.get(classExtends).fields);
+        classInfo thisClass = this.globalST.get(className), superClass = this.globalST.get(classExtends);
+        thisClass.fields.addAll(superClass.fields);
+        thisClass.methods.addAll(superClass.methods);
+        Map<String, methodInfo> thisClassMethods = thisClass.methods.get(0);
+        for (int i = 1; i < thisClass.methods.size(); i++) {
+            Map<String, methodInfo> superClassMethods = thisClass.methods.get(i);
+            for (Map.Entry<String, methodInfo> entry : thisClassMethods.entrySet()) {
+                methodInfo infoSuper;
+                if ((infoSuper = superClassMethods.get(entry.getKey())) != null) {
+                    methodInfo infoThis = entry.getValue();
+                    if (infoSuper.returnValue.compareTo(infoThis.returnValue) != 0 || infoSuper.argNum != infoThis.argNum || infoSuper.argTypes.compareTo(infoThis.argTypes) != 0) throw new Exception();
+                }
+            }
+        }
         return null;
     }
 
@@ -117,7 +131,7 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
         if ((classI = this.globalST.get(scopes[0])) == null) throw new Exception();
         if (argu.contains("->")) {
             methodInfo methodI;
-            if ((methodI = classI.methods.get(scopes[1])) == null) throw new Exception();
+            if ((methodI = classI.methods.get(0).get(scopes[1])) == null) throw new Exception();
             if (methodI.localVars.put(n.f1.accept(this, null), new fieldInfo(n.f0.accept(this, null))) != null) throw new Exception();
         } else if (classI.fields.get(0).put(n.f1.accept(this, null), new fieldInfo(n.f0.accept(this, null))) != null) throw new Exception();
         return null;
@@ -144,8 +158,8 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
         String methodName = n.f2.accept(this, null);
         classInfo classI;
         if ((classI = this.globalST.get(argu)) == null) throw new Exception();
-        if (classI.methods.put(methodName, new methodInfo()) != null) throw new Exception();
-        methodInfo methodI = classI.methods.get(methodName);
+        if (classI.methods.get(0).put(methodName, new methodInfo()) != null) throw new Exception();
+        methodInfo methodI = classI.methods.get(0).get(methodName);
         methodI.returnValue = n.f1.accept(this, null);
         String argList = (n.f4.present() ? n.f4.accept(this, null) : "");
         if (!argList.equals("")) {

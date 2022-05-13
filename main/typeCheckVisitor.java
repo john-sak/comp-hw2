@@ -34,6 +34,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     public String visit(MainClass n, TCArgs argu) throws Exception {
         TCArgs oldArgu = argu;
         argu.scope = n.f1.accept(this, null) + "->main";
+        n.f14.accept(this, argu);
         n.f15.accept(this, argu);
         argu = oldArgu;
         return null;
@@ -51,6 +52,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     public String visit(ClassDeclaration n, TCArgs argu) throws Exception {
         TCArgs oldArgu = argu;
         argu.scope = n.f1.accept(this, null);
+        n.f3.accept(this, argu);
         n.f4.accept(this, argu);
         argu = oldArgu;
         return null;
@@ -70,11 +72,33 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     public String visit(ClassExtendsDeclaration n, TCArgs argu) throws Exception {
         TCArgs oldArgu = argu;
         argu.scope = n.f1.accept(this, null);
+        n.f5.accept(this, argu);
         n.f6.accept(this, argu);
         argu = oldArgu;
         return null;
     }
 
+    /**
+     * f0 -> Type()
+     * f1 -> Identifier()
+     * f2 -> ";"
+     */
+    public String visit(VarDeclaration n, TCArgs argu) throws Exception {
+        String type = n.f0.accept(this, argu);
+        if (type.compareTo("boolean[]") !=0 && type.compareTo("int[]") !=0 && type.compareTo("boolean") != 0 && type.compareTo("int") != 0 && !argu.globalST.containsKey(type)) throw new Exception();
+        // String[] scopes = argu.scope.split("->");
+        // classInfo classI;
+        // if ((classI = argu.globalST.get(scopes[0])) == null) throw new Exception();
+        // if (argu.scope.contains("->")) {
+        //     methodInfo methodI;
+        //     if ((methodI = classI.methods.get(0).get(scopes[1])) == null) throw new Exception();
+        //     if (methodI.localVars.put(n.f1.accept(this, null), new fieldInfo(n.f0.accept(this, null))) != null) throw new Exception();
+        // } else {
+        //     if (!argu.globalST.containsKey(n.f0.accept(this, null))) throw new Exception();
+        // }
+        return null;
+    }
+    
     /**
      * f0 -> "public"
      * f1 -> Type()
@@ -94,12 +118,25 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     public String visit(MethodDeclaration n, TCArgs argu) throws Exception {
         TCArgs oldArgu = argu;
         argu.scope += "->" + n.f2.accept(this, null);
+        n.f4.accept(this, argu);
+        n.f7.accept(this, argu);
         n.f8.accept(this, argu);
-        if (n.f1.accept(this, null).compareTo(n.f10.accept(this, argu)) != 0) throw new Exception();
+        if (n.f1.accept(this, argu).compareTo(n.f10.accept(this, argu)) != 0) throw new Exception();
         argu = oldArgu;
         return null;
     }
 
+    /**
+     * f0 -> Type()
+     * f1 -> Identifier()
+     */
+    @Override
+    public String visit(FormalParameter n, TCArgs argu) throws Exception {
+        String type = n.f0.accept(this, argu);
+        if (type.compareTo("boolean[]") !=0 && type.compareTo("int[]") !=0 && type.compareTo("boolean") != 0 && type.compareTo("int") != 0 && !argu.globalST.containsKey(type)) throw new Exception();
+        return null;
+    }
+    
     /**
      * f0 -> "boolean"
      * f1 -> "["

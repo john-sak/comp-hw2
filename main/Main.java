@@ -22,6 +22,16 @@ public class Main {
                 symbolTableVisitor STVisitor = new symbolTableVisitor();
                 root.accept(STVisitor, null);
                 System.out.println("Program in inputFile \"" + args[i] + "\" idk.");
+                System.out.println(STVisitor.globalST);
+                System.out.println(STVisitor.globalST.get("Example"));
+                System.out.println(STVisitor.globalST.get("Example").fields);
+                System.out.println(STVisitor.globalST.get("Example").methods);
+                System.out.println(STVisitor.globalST.get("A"));
+                System.out.println(STVisitor.globalST.get("A").fields);
+                System.out.println(STVisitor.globalST.get("A").methods);
+                System.out.println(STVisitor.globalST.get("B"));
+                System.out.println(STVisitor.globalST.get("B").fields);
+                System.out.println(STVisitor.globalST.get("B").methods);
                 // TCArgs argu = new TCArgs();
                 // argu.globalST = STVisitor.globalST;
                 // typeCheckVisitor TCVisitor = new typeCheckVisitor();
