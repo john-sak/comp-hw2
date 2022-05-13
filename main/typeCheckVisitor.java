@@ -10,15 +10,23 @@ class TCArgs {
 
 class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
 
-    public String resolveIdentifier(String ID, TCArgs argu) {
-        return "int";
+    public String resolveIdentifier(String ID, TCArgs argu) throws Exception {
+        if (!ID.contains("->")) throw new Exception();
+        String type;
+        String[] scope = argu.scope.split("->");
+        classInfo classI;
+        if ((classI = argu.globalST.get(scope[0])) == null) throw new Exception();
+        methodInfo methodI;
+        if ((methodI = classI.methods.get(0).get(scope[1])) == null) throw new Exception();
+        // todo
+        return type;
     }
 
     public boolean isValidType(String type, TCArgs argu) {
-        return true;
+        return type.compareTo("boolean[]") == 0 || type.compareTo("int[]") == 0 || type.compareTo("boolean") == 0 || type.compareTo("int") == 0 || argu.globalST.containsKey(type);
     }
 
-    public boolean isAcceptable(String expected, String given, TCArgs argu) {
+    public boolean isAcceptable(String expected, String given, TCArgs argu) throws Exception {
         return true;
     }
 
