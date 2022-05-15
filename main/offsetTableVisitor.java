@@ -22,6 +22,7 @@ class OTEntry {
     String className;
     List<OTData> variables = new ArrayList<OTData>();
     List<OTData> methods = new ArrayList<OTData>();
+    int posV = 0, posM = 0;
 
     OTEntry(String name) {
         this.className = name;
@@ -35,7 +36,6 @@ class OTArgs {
 
 class offsetTableVisitor extends GJDepthFirst<String, OTArgs> {
     Map<String, OTEntry> stack = new HashMap<String, OTEntry>();
-    int posV = 0, posM = 0;
 
     public void printResult() {
         for (Map.Entry<String, OTEntry> entry : this.stack.entrySet()) {
@@ -44,7 +44,7 @@ class offsetTableVisitor extends GJDepthFirst<String, OTArgs> {
             System.out.println("--Variables--");
             for (OTData data : value.variables) System.out.println(data.scope + "." + data.identifier + " : " + data.offset);
             System.out.println("---Methods---");
-            for (OTData data : value.variables) System.out.println(data.scope + "." + data.identifier + " : " + data.offset);
+            for (OTData data : value.methods) System.out.println(data.scope + "." + data.identifier + " : " + data.offset);
         }
         return;
     }
@@ -116,13 +116,13 @@ class offsetTableVisitor extends GJDepthFirst<String, OTArgs> {
         while ((classI = classI.superclass) != null) if (classI.fields.containsKey(name)) return null;
         OTEntry entry;
         if ((entry = this.stack.get(argu.scope)) == null) throw new Exception();
-        entry.variables.add(new OTData(argu.scope, name, this.posV));
+        entry.variables.add(new OTData(argu.scope, name, entry.posV));
         int offset;
-        if (type.compareTo("boolean[]") == 0 || type.compareTo("int[]") == 0) offset = 8;
+        if (type.compareTo("boolean[]") == 0 || type.compareTo("int[]") == 0 || argu.symbolTable.containsKey(type)) offset = 8;
         else if (type.compareTo("boolean") == 0) offset = 1;
         else if (type.compareTo("int") == 0) offset = 4;
         else throw new Exception();
-        this.posV += offset;
+        entry.posV += offset;
         return null;
     }
     
@@ -150,8 +150,8 @@ class offsetTableVisitor extends GJDepthFirst<String, OTArgs> {
         while ((classI = classI.superclass) != null) if (classI.methods.containsKey(name)) return null;
         OTEntry entry;
         if ((entry = this.stack.get(argu.scope)) == null) throw new Exception();
-        entry.methods.add(new OTData(argu.scope, name, this.posM));
-        this.posV += 8;
+        entry.methods.add(new OTData(argu.scope, name, entry.posM));
+        entry.posM += 8;
         return null;
     }
 
