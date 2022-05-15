@@ -409,9 +409,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
             String[] parameters = n.f4.accept(this, argu).split(", ");
             if (parameters.length != methodI.argNum) throw new Exception();
             String[] arguments = methodI.argTypes.split(", ");
-            for (int i = 0; i < parameters.length; i++) {
-                if (!isAcceptable(arguments[i], parameters[i], argu)) throw new Exception();
-            }
+            for (int i = 0; i < parameters.length; i++) if (!isAcceptable(arguments[i], parameters[i], argu)) throw new Exception();
         } else if (methodI.argNum != 0) throw new Exception();
         return methodI.returnValue;
     }
