@@ -20,12 +20,16 @@ public class Main {
                 symbolTableVisitor STVisitor = new symbolTableVisitor();
                 root.accept(STVisitor, null);
                 System.out.println("Symbol Table for program in inputFile \"" + args[i] + "\" created succesfully.");
-                TCArgs argu = new TCArgs();
-                argu.globalST = STVisitor.globalST;
+                TCArgs arguTCA = new TCArgs();
+                arguTCA.globalST = STVisitor.globalST;
                 typeCheckVisitor TCVisitor = new typeCheckVisitor();
-                root.accept(TCVisitor, argu);
+                root.accept(TCVisitor, arguTCA);
                 System.out.println("Type Check for program in inputFile \"" + args[i] + "\" finished succesfully.");
-                System.out.println("todo print rest");
+                OTArgs arguOTA = new OTArgs();
+                arguOTA.symbolTable = STVisitor.globalST;
+                offsetTableVisitor OTVisitor = new offsetTableVisitor();
+                root.accept(OTVisitor, arguOTA);
+                OTVisitor.printResult();
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage() + " inputFile \"" + args[i] + "\"");
