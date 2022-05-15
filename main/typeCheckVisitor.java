@@ -11,24 +11,21 @@ class TCArgs {
 class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
 
     public String resolveIdentifier(String ID, TCArgs argu) throws Exception {
-        if (!argu.scope.contains("->")) throw new Exception();
         String[] scope = argu.scope.split("->");
         classInfo classI;
         if ((classI = argu.globalST.get(scope[0])) == null) throw new Exception();
-        methodInfo methodI;
-        if ((methodI = classI.methods.get(scope[1])) == null) throw new Exception();
-        fieldInfo fieldI;
-        if ((fieldI = methodI.localVars.get(ID)) != null) return fieldI.type;
-        // if ((fieldI = classI.fields.get(ID)) != null) return fieldI.type;
-        // while ((classI = classI.superclass) != null) if ((fieldI = classI.fields.get(ID)) != null) return fieldI.type;
-        while (classI != null) {
-            if ((fieldI = classI.fields.get(ID)) != null) return fieldI.type;
-            classI = classI.superclass;
+        if (argu.scope.contains("->")) {
+            methodInfo methodI;
+            if ((methodI = classI.methods.get(scope[1])) == null) throw new Exception();
+            if (ID.compareTo("this") == 0) return classI.name;
+            fieldInfo fieldI;
+            if ((fieldI = methodI.localVars.get(ID)) != null) return fieldI.type;
+            while (classI != null) {
+                if ((fieldI = classI.fields.get(ID)) != null) return fieldI.type;
+                classI = classI.superclass;
+            }
         }
-        // for (int i = 0; i < classI.superclasses.size(); i++) if (classI.superclasses.get(i).fields.get(0).containsKey(ID)) return classI.superclasses.get(i).fields.get(0).get(ID).type;
-        // if (classI.fields.contains(ID)) return classI.fields.get(0).get(ID).type;
-        // if (argu.globalST.containsKey(ID)) return ID;
-        return null;
+        throw new Exception();
     }
 
     public boolean isValidType(String type, TCArgs argu) {
@@ -42,9 +39,10 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
             if (!isValidType(type, argu)) continue;
             if (given.compareTo(type) == 0) return true;
             classInfo classI = argu.globalST.get(given);
-            // if ((classI = argu.globalST.get(given)) == null) return false;
-            while ((classI = classI.superclass) != null) if (classI.name.compareTo(type) == 0) return true;
-            // if (classI.superclasses.contains(argu.globalST.get(expected))) return true;
+            while (classI != null) {
+                if (classI.name.compareTo(type) == 0) return true;
+                classI = classI.superclass;
+            }
         }
         return false;
     }
@@ -71,11 +69,11 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(MainClass n, TCArgs argu) throws Exception {
-        TCArgs oldArgu = argu;
+        String oldArgu = argu.scope;
         argu.scope = n.f1.accept(this, argu) + "->main";
         n.f14.accept(this, argu);
         n.f15.accept(this, argu);
-        argu = oldArgu;
+        argu.scope = oldArgu;
         return null;
     }
 
@@ -89,11 +87,11 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(ClassDeclaration n, TCArgs argu) throws Exception {
-        TCArgs oldArgu = argu;
+        String oldArgu = argu.scope;
         argu.scope = n.f1.accept(this, argu);
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
-        argu = oldArgu;
+        argu.scope = oldArgu;
         return null;
     }
     
@@ -109,11 +107,11 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(ClassExtendsDeclaration n, TCArgs argu) throws Exception {
-        TCArgs oldArgu = argu;
+        String oldArgu = argu.scope;
         argu.scope = n.f1.accept(this, argu);
         n.f5.accept(this, argu);
         n.f6.accept(this, argu);
-        argu = oldArgu;
+        argu.scope = oldArgu;
         return null;
     }
 
@@ -124,8 +122,6 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(VarDeclaration n, TCArgs argu) throws Exception {
-        // String type = n.f0.accept(this, argu);
-        // if (!isValidType(type, argu)) throw new Exception();
         if (!isValidType(n.f0.accept(this, argu), argu)) throw new Exception();
         return null;
     }
@@ -147,17 +143,19 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(MethodDeclaration n, TCArgs argu) throws Exception {
+        String oldArgu = argu.scope;
+        argu.scope += "->" + n.f2.accept(this, argu);
         String type = n.f1.accept(this, argu);
         if (!isValidType(type, argu)) throw new Exception();
-        TCArgs oldArgu = argu;
-        argu.scope += "->" + n.f2.accept(this, argu);
         n.f4.accept(this, argu);
         n.f7.accept(this, argu);
         n.f8.accept(this, argu);
         if (!isAcceptable(type, n.f10.accept(this, argu), argu)) throw new Exception();
-        argu = oldArgu;
+        argu.scope = oldArgu;
         return null;
     }
+
+
 
     /**
      * f0 -> Type()
@@ -206,6 +204,16 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     }
 
     /**
+     * f0 -> "{"
+     * f1 -> ( Statement() )*
+     * f2 -> "}"
+     */
+    @Override
+    public String visit(Block n, TCArgs argu) throws Exception {
+        return n.f1.accept(this, argu);
+    }
+
+    /**
      * f0 -> Identifier()
      * f1 -> "="
      * f2 -> Expression()
@@ -231,7 +239,6 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
         String type = resolveIdentifier(n.f0.accept(this, argu), argu);
         if (!isAcceptable("boolean[]-int[]", type, argu)) throw new Exception();
         if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
-        // type = type.substring(0, type.length() - 2);
         if (!isAcceptable(type.substring(0, type.length() - 2), n.f5.accept(this, argu), argu)) throw new Exception();
         return null;
     }
@@ -375,13 +382,8 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(MessageSend n, TCArgs argu) throws Exception {
-        String expr = n.f0.accept(this, argu), scope;
-        if (expr.compareTo("this") != 0) {
-            scope = expr;
-        } else {
-            if (!argu.scope.contains("->")) throw new Exception();
-            scope = argu.scope.split("->")[0];
-        }
+        String scope = n.f0.accept(this, argu);
+        if (!argu.globalST.containsKey(scope)) throw new Exception();
         String name = n.f2.accept(this, argu);
         classInfo classI;
         if ((classI = argu.globalST.get(scope)) == null) throw new Exception();
@@ -391,13 +393,13 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
             classI = classI.superclass;
         }
         if (methodI == null) throw new Exception();
-        // for (Map<String, methodInfo> node : classI.methods) if ((methodI = node.get(name)) != null) break;
-        // if (methodI == null) throw new Exception();
         if (n.f4.present()) {
             String[] parameters = n.f4.accept(this, argu).split(", ");
             if (parameters.length != methodI.argNum) throw new Exception();
-            String[] argumetns = methodI.argTypes.split(", ");
-            for (int i = 0; i < parameters.length; i++) if (parameters[i].compareTo(argumetns[i]) != 0) throw new Exception();
+            String[] arguments = methodI.argTypes.split(", ");
+            for (int i = 0; i < parameters.length; i++) {
+                if (!isAcceptable(arguments[i], parameters[i], argu)) throw new Exception();
+            }
         } else if (methodI.argNum != 0) throw new Exception();
         return methodI.returnValue;
     }
@@ -409,6 +411,14 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     @Override
     public String visit(ExpressionList n, TCArgs argu) throws Exception {
         return n.f0.accept(this, argu) + n.f1.accept(this, argu);
+    }
+
+    /**
+     * f0 -> ( ExpressionTerm() )*
+     */
+    @Override
+    public String visit(ExpressionTail n, TCArgs argu) throws Exception {
+        return n.f0.present() ? n.f0.accept(this, argu) : "";
     }
 
     /**
@@ -434,7 +444,6 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     public String visit(PrimaryExpression n, TCArgs argu) throws Exception {
         String type = n.f0.accept(this, argu);
         if (!isValidType(type, argu)) type = resolveIdentifier(type, argu);
-        if (type == null) throw new Exception();
         return type;
     }
 
@@ -513,7 +522,6 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     @Override
     public String visit(AllocationExpression n, TCArgs argu) throws Exception {
         String type = n.f1.accept(this, argu);
-        // if (!argu.globalST.containsKey(type)) throw new Exception();
         if (!isValidType(type, argu)) throw new Exception();
         return type;
     }
@@ -526,5 +534,15 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     public String visit(NotExpression n, TCArgs argu) throws Exception {
         if (!isAcceptable("boolean", n.f1.accept(this, argu), argu)) throw new Exception();
         return "boolean";
+    }
+
+    /**
+     * f0 -> "("
+     * f1 -> Expression()
+     * f2 -> ")"
+     */
+    @Override
+    public String visit(BracketExpression n, TCArgs argu) throws Exception {
+        return n.f1.accept(this, argu);
     }
 }

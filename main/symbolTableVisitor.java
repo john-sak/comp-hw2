@@ -1,15 +1,10 @@
 import syntaxtree.*;
 import visitor.*;
 
-// import java.util.List;
-// import java.util.ArrayList;
-
 import java.util.Map;
 import java.util.HashMap;
 
 class classInfo {
-    // public List<Map<String, fieldInfo>> fields = new ArrayList<Map<String, fieldInfo>>();
-    // public List<Map<String, methodInfo>> methods = new ArrayList<Map<String, methodInfo>>();
     public String name;
     public Map<String, fieldInfo> fields = new HashMap<String, fieldInfo>();
     public Map<String, methodInfo> methods = new HashMap<String, methodInfo>();
@@ -18,11 +13,6 @@ class classInfo {
     classInfo(String name) {
         this.name = name;
     }
-
-    // classInfo() {
-    //     this.fields.add(new HashMap<String, fieldInfo>());
-    //     this.methods.add(new HashMap<String, methodInfo>());
-    // }
 }
 
 class fieldInfo {
@@ -67,9 +57,7 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
         String className = n.f1.accept(this, null);
         if (this.globalST.put(className, new classInfo(className)) != null) throw new Exception();
         if (this.globalST.get(className).methods.put("main", new methodInfo()) != null) throw new Exception();
-        // if (this.globalST.get(className).methods.get(0).put("main", new methodInfo()) != null) throw new Exception();
         methodInfo methodI = this.globalST.get(className).methods.get("main");
-        // methodInfo methodI = this.globalST.get(className).methods.get(0).get("main");
         methodI.returnValue = "void";
         methodI.argNum = 1;
         methodI.argTypes = "String[]";
@@ -113,10 +101,6 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
         n.f5.accept(this, className);
         n.f6.accept(this, className);
         classInfo thisClass = this.globalST.get(className), superClass = this.globalST.get(classExtends);
-        // thisClass.fields.addAll(superClass.fields);
-        // thisClass.methods.addAll(superClass.methods);
-        // thisClass.superclasses.add(superClass);
-        // thisClass.superclasses.addAll(superClass.superclasses);
         thisClass.superclass = superClass;
         Map<String, methodInfo> newMethods = thisClass.methods;
         while ((superClass = thisClass.superclass) != null) {
@@ -129,17 +113,6 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
             }
             thisClass = superClass;
         }
-        // Map<String, methodInfo> thisClassMethods = thisClass.methods;
-        // for (int i = 1; i < thisClass.methods.size(); i++) {
-        //     Map<String, methodInfo> superClassMethods = thisClass.methods.get(i);
-        //     for (Map.Entry<String, methodInfo> entry : thisClassMethods.entrySet()) {
-        //         methodInfo infoSuper;
-        //         if ((infoSuper = superClassMethods.get(entry.getKey())) != null) {
-        //             methodInfo infoThis = entry.getValue();
-        //             if (infoSuper.returnValue.compareTo(infoThis.returnValue) != 0 || infoSuper.argNum != infoThis.argNum || infoSuper.argTypes.compareTo(infoThis.argTypes) != 0) throw new Exception();
-        //         }
-        //     }
-        // }
         return null;
     }
 
@@ -205,9 +178,9 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
     }
 
     /**
-    * f0 -> FormalParameter()
-    * f1 -> FormalParameterTail()
-    */
+     * f0 -> FormalParameter()
+     * f1 -> FormalParameterTail()
+     */
     @Override
     public String visit(FormalParameterList n, String argu) throws Exception {
         return n.f0.accept(this, null) + n.f1.accept(this, null);
@@ -220,6 +193,14 @@ class symbolTableVisitor extends GJDepthFirst<String, String> {
     @Override
     public String visit(FormalParameter n, String argu) throws Exception {
         return n.f0.accept(this, null) + " " + n.f1.accept(this, null);
+    }
+
+    /**
+     * f0 -> ( FormalParameterTerm() )*
+     */
+    @Override
+    public String visit(FormalParameterTail n, String argu) throws Exception {
+        return n.f0.present() ? n.f0.accept(this, argu) : "";
     }
 
     /**
