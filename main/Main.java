@@ -19,22 +19,12 @@ public class Main {
                 System.err.println("Program in inputFile \"" + args[i] + "\" parsed successfully.");
                 symbolTableVisitor STVisitor = new symbolTableVisitor();
                 root.accept(STVisitor, null);
-                System.out.println("Program in inputFile \"" + args[i] + "\" idk.");
-                // System.out.println(STVisitor.globalST);
-                // System.out.println(STVisitor.globalST.get("Example"));
-                // System.out.println(STVisitor.globalST.get("Example").fields);
-                // System.out.println(STVisitor.globalST.get("Example").methods);
-                // System.out.println(STVisitor.globalST.get("A"));
-                // System.out.println(STVisitor.globalST.get("A").fields);
-                // System.out.println(STVisitor.globalST.get("A").methods);
-                // System.out.println(STVisitor.globalST.get("B"));
-                // System.out.println(STVisitor.globalST.get("B").fields);
-                // System.out.println(STVisitor.globalST.get("B").methods);
+                System.out.println("Symbol Table for program in inputFile \"" + args[i] + "\" created succesfully.");
                 TCArgs argu = new TCArgs();
                 argu.globalST = STVisitor.globalST;
                 typeCheckVisitor TCVisitor = new typeCheckVisitor();
                 root.accept(TCVisitor, argu);
-                System.out.println("Program in inputFile \"" + args[i] + "\" idk.");
+                System.out.println("Type Check for program in inputFile \"" + args[i] + "\" finished succesfully.");
                 System.out.println("todo print rest");
             }
             catch(ParseException ex){

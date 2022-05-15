@@ -48,6 +48,18 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     }
 
     /**
+     * f0 -> MainClass()
+     * f1 -> ( TypeDeclaration() )*
+     * f2 -> <EOF>
+     */
+    public String visit(Goal n, TCArgs argu) throws Exception {
+        if (argu.globalST == null) throw new Exception();
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        return null;
+    }
+
+    /**
      * f0 -> "class"
      * f1 -> Identifier()
      * f2 -> "{"
