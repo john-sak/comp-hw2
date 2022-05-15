@@ -37,10 +37,10 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
 
     public boolean isAcceptable(String expected, String given, TCArgs argu) throws Exception {
         if (!isValidType(given, argu)) return false;
-        String[] acceptable = expected.split("|");
+        String[] acceptable = expected.split("-");
         for (String type : acceptable) {
             if (!isValidType(type, argu)) continue;
-            if (given.compareTo(expected) == 0) return true;
+            if (given.compareTo(type) == 0) return true;
             classInfo classI = argu.globalST.get(given);
             // if ((classI = argu.globalST.get(given)) == null) return false;
             while ((classI = classI.superclass) != null) if (classI.name.compareTo(type) == 0) return true;
@@ -229,7 +229,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     @Override
     public String visit(ArrayAssignmentStatement n, TCArgs argu) throws Exception {
         String type = resolveIdentifier(n.f0.accept(this, argu), argu);
-        if (!isAcceptable("boolean[]|int[]", type, argu)) throw new Exception();
+        if (!isAcceptable("boolean[]-int[]", type, argu)) throw new Exception();
         if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
         // type = type.substring(0, type.length() - 2);
         if (!isAcceptable(type.substring(0, type.length() - 2), n.f5.accept(this, argu), argu)) throw new Exception();
@@ -349,7 +349,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
     @Override
     public String visit(ArrayLookup n, TCArgs argu) throws Exception {
         String type = n.f0.accept(this, argu);
-        if (!isAcceptable("boolean[]|int[]", type, argu)) throw new Exception();
+        if (!isAcceptable("boolean[]-int[]", type, argu)) throw new Exception();
         if (!isAcceptable("int", n.f2.accept(this, argu), argu)) throw new Exception();
         return type.substring(0, type.length() - 2);
     }
@@ -361,7 +361,7 @@ class typeCheckVisitor extends GJDepthFirst<String, TCArgs> {
      */
     @Override
     public String visit(ArrayLength n, TCArgs argu) throws Exception {
-        if (!isAcceptable("boolean[]|int[]", n.f0.accept(this, argu), argu)) throw new Exception();
+        if (!isAcceptable("boolean[]-int[]", n.f0.accept(this, argu), argu)) throw new Exception();
         return "int";
     }
 
