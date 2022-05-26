@@ -37,9 +37,13 @@ public class Main {
             catch(FileNotFoundException ex){
                 System.err.println(ex.getMessage() + " inputFile \"" + args[i] + "\"");
             }
+            catch (Exception ex) {
+                System.err.println("Error in inputFile \"" + args[i] + "\" (" + ex.getMessage() + ").");
+            }
             finally{
                 try{
                     if(fis != null) fis.close();
+                    System.out.println();
                 }
                 catch(IOException ex){
                     System.err.println(ex.getMessage() + " inputFile \"" + args[i] + "\"");
